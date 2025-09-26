@@ -14,9 +14,7 @@ const PORT = process.env.PORT || 3001;
 
 // CORS configurado PRIMEIRO (antes de outros middlewares)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://veloinsights-app.vercel.app', 'https://veloinsights-public.vercel.app'] 
-    : ['http://localhost:3000'],
+  origin: true, // Permitir todas as origens temporariamente
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
@@ -40,15 +38,8 @@ app.use('/api/', limiter);
 
 // Middleware adicional para garantir CORS
 app.use((req, res, next) => {
-  const allowedOrigins = process.env.NODE_ENV === 'production' 
-    ? ['https://veloinsights-app.vercel.app', 'https://veloinsights-public.vercel.app']
-    : ['http://localhost:3000'];
-  
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  
+  // Permitir todas as origens temporariamente
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
@@ -60,7 +51,7 @@ app.use((req, res, next) => {
   }
 });
 
-app.use(express.json({ limit: '100mb' }));
+app.use(express.json({ limit: '50mb' })); // Reduzido para 50MB (Vercel free tier)
 app.use(express.static('public'));
 
 // Configuração do Multer para upload
@@ -76,7 +67,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
   storage: storage,
   limits: { 
-    fileSize: 100 * 1024 * 1024, // 100MB limite
+    fileSize: 50 * 1024 * 1024, // 50MB limite (Vercel free tier)
     files: 1 // apenas 1 arquivo por vez
   },
   fileFilter: (req, file, cb) => {
@@ -277,8 +268,8 @@ app.post('/api/upload', upload.single('planilha'), async (req, res) => {
     const fileSizeMB = (req.file.size / 1024 / 1024).toFixed(2);
     console.log('Arquivo recebido:', req.file.filename, 'Tamanho:', fileSizeMB + 'MB');
     
-    // Para arquivos grandes (> 5MB), salvar e retornar ID para processamento posterior
-    if (req.file.size > 5 * 1024 * 1024) {
+    // Para arquivos grandes (> 2MB), salvar e retornar ID para processamento posterior
+    if (req.file.size > 2 * 1024 * 1024) {
       return res.json({
         success: true,
         message: 'Arquivo grande detectado. Use o endpoint /api/process-large para processar.',
