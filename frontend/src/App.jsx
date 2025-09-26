@@ -50,52 +50,40 @@ function App() {
   const handleUpload = async (file) => {
     setLoading(true)
     try {
+      console.log('📁 Iniciando upload do arquivo:', file.name, 'Tamanho:', (file.size / 1024 / 1024).toFixed(2) + 'MB')
+      
       const formData = new FormData()
       formData.append('planilha', file)
 
-      const response = await fetch('https://velo-insights.vercel.app/api/upload?t=' + Date.now(), {
+      console.log('🌐 Fazendo requisição para:', 'https://velo-insights.vercel.app/api/upload')
+      
+      const response = await fetch('https://velo-insights.vercel.app/api/upload', {
         method: 'POST',
-        body: formData
+        body: formData,
+        mode: 'cors',
+        credentials: 'omit'
       })
 
+      console.log('📊 Response status:', response.status)
+      console.log('📊 Response headers:', response.headers)
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const result = await response.json()
+      console.log('📊 Resultado do upload:', result)
       
       if (result.success) {
         console.log('✅ Upload bem-sucedido:', result)
-        
-        if (result.processing === false) {
-          // Arquivo grande - usar endpoint separado
-          const processResponse = await fetch('https://velo-insights.vercel.app/api/process-large', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileId: result.fileId })
-          })
-          const processResult = await processResponse.json()
-          if (processResult.success) {
-            // Garantir estrutura válida
-            const dadosSeguros = {
-              tipo: processResult.data?.tipo || 'ligacoes',
-              atendimentos: processResult.data?.atendimentos || [],
-              operadores: processResult.data?.operadores || [],
-              acoesOperador: processResult.data?.acoesOperador || []
-            }
-            setDados(dadosSeguros)
-          }
-        } else {
-          // Arquivo pequeno - processado diretamente
-          const dadosSeguros = {
-            tipo: result.data?.tipo || 'ligacoes',
-            atendimentos: result.data?.atendimentos || [],
-            operadores: result.data?.operadores || [],
-            acoesOperador: result.data?.acoesOperador || []
-          }
-          setDados(dadosSeguros)
-        }
+        alert('Upload realizado com sucesso! Arquivo: ' + result.file.name)
       } else {
         console.error('❌ Upload falhou:', result)
+        alert('Erro no upload: ' + result.message)
       }
     } catch (error) {
-      console.error('Erro no upload:', error)
+      console.error('❌ Erro no upload:', error)
+      alert('Erro no upload: ' + error.message)
     } finally {
       setLoading(false)
     }
