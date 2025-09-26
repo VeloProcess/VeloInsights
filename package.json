@@ -2,13 +2,8 @@
   "name": "veloinsights",
   "version": "1.0.0",
   "private": true,
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
-    "preview": "vite preview"
+    "build": "vite build"
   },
   "dependencies": {
     "react": "18.2.0",
