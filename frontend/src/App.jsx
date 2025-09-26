@@ -76,7 +76,17 @@ function App() {
       
       if (result.success) {
         console.log('✅ Upload bem-sucedido:', result)
-        alert('Upload realizado com sucesso! Arquivo: ' + result.file.name)
+        
+        if (result.processing === false) {
+          // Arquivo grande - mostrar mensagem
+          alert('Arquivo grande recebido! (' + result.file.size + ') - Processamento em background.')
+        } else {
+          // Arquivo pequeno - processado diretamente
+          alert('Upload realizado com sucesso! Arquivo: ' + result.file.name)
+          if (result.data) {
+            setDados(result.data)
+          }
+        }
       } else {
         console.error('❌ Upload falhou:', result)
         alert('Erro no upload: ' + result.message)

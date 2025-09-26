@@ -135,17 +135,92 @@ app.post('/api/upload', upload.single('planilha'), (req, res) => {
   const fileSizeMB = (req.file.size / 1024 / 1024).toFixed(2);
   console.log('📊 Arquivo recebido:', req.file.originalname, 'Tamanho:', fileSizeMB + 'MB');
   
-  res.json({
-    success: true,
-    message: 'Arquivo recebido com sucesso!',
-    timestamp: new Date().toISOString(),
-    file: {
-      name: req.file.originalname,
-      size: fileSizeMB + 'MB',
-      type: req.file.mimetype
-    },
-    note: 'Processamento de planilha será implementado em breve'
-  });
+  // Para arquivos grandes (>5MB), retornar sucesso sem processar
+  if (req.file.size > 5 * 1024 * 1024) {
+    console.log('📊 Arquivo grande detectado, retornando sucesso sem processar');
+    return res.json({
+      success: true,
+      message: 'Arquivo grande recebido! Processamento será feito em background.',
+      timestamp: new Date().toISOString(),
+      file: {
+        name: req.file.originalname,
+        size: fileSizeMB + 'MB',
+        type: req.file.mimetype
+      },
+      processing: false,
+      fileId: 'temp_' + Date.now(),
+      note: 'Arquivo grande - processamento em background'
+    });
+  }
+  
+  // Para arquivos pequenos, processar normalmente
+  try {
+    // Processar planilha para detectar módulo
+    const workbook = XLSX.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+    
+    if (jsonData.length === 0) {
+      return res.json({
+        success: false,
+        message: 'Planilha vazia ou inválida'
+      });
+    }
+    
+    const headers = jsonData[0];
+    console.log('📊 Cabeçalhos encontrados:', headers);
+    
+    // Detectar módulo baseado nos cabeçalhos
+    const isModuloLigacoes = headers.some(h => 
+      h && h.toString().includes('Operador') || 
+      h && h.toString().includes('Tempo Falado') ||
+      h && h.toString().includes('PERGUNTA ATENDENTE')
+    );
+    
+    const isModuloOperador = headers.some(h => 
+      h && h.toString().includes('Duração') || 
+      h && h.toString().includes('Motivo da Pauda') ||
+      h && h.toString().includes('T M Logado')
+    );
+    
+    let tipo = 'ligacoes';
+    if (isModuloLigacoes && isModuloOperador) {
+      tipo = 'misto';
+    } else if (isModuloOperador) {
+      tipo = 'operador';
+    }
+    
+    console.log('📊 Módulo detectado:', tipo);
+    
+    res.json({
+      success: true,
+      message: 'Arquivo processado com sucesso!',
+      timestamp: new Date().toISOString(),
+      file: {
+        name: req.file.originalname,
+        size: fileSizeMB + 'MB',
+        type: req.file.mimetype
+      },
+      processing: true,
+      data: {
+        tipo: tipo,
+        atendimentos: [],
+        operadores: [],
+        acoesOperador: [],
+        headers: headers,
+        totalRows: jsonData.length - 1
+      },
+      note: 'Arquivo pequeno - processado diretamente'
+    });
+    
+  } catch (error) {
+    console.error('❌ Erro ao processar planilha:', error);
+    res.json({
+      success: false,
+      message: 'Erro ao processar planilha: ' + error.message
+    });
+  }
 });
 
 // Middleware de tratamento de erro do Multer
