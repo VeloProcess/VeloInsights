@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd PUBLIC && npm install && npm run build",
-  "outputDirectory": "PUBLIC/dist",
+  "buildCommand": "npm install && npm run build",
+  "outputDirectory": "dist",
   "framework": "vite"
 }
