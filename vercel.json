@@ -1,19 +1,18 @@
 {
   "version": 2,
-  "projects": [
+  "builds": [
     {
-      "name": "veloinsights-api",
-      "rootDirectory": "Velodados/API",
-      "buildCommand": "npm install",
-      "outputDirectory": ".",
-      "framework": "nodejs"
-    },
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
     {
-      "name": "veloinsights-public", 
-      "rootDirectory": "frontend",
-      "buildCommand": "npm run build",
-      "outputDirectory": "dist",
-      "framework": "vite"
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
     }
   ]
 }

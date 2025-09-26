@@ -1,3 +1,4 @@
+# Ignorar arquivos desnecessários
 node_modules
 .git
 .env.local
@@ -7,8 +8,5 @@ node_modules
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-.pnpm-debug.log*
-.next
-.vercel
-*.tsbuildinfo
-next-env.d.ts
+.DS_Store
+Thumbs.db
