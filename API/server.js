@@ -27,7 +27,7 @@ app.use('/api/', limiter);
 // CORS configurado
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://veloinsights-public.vercel.app'] 
+    ? ['https://veloinsights-app.vercel.app'] 
     : ['http://localhost:3000'],
   credentials: true
 }));
