@@ -10,7 +10,7 @@
     },
     {
       "name": "veloinsights-public", 
-      "rootDirectory": "Velodados/PUBLIC",
+      "rootDirectory": "frontend",
       "buildCommand": "npm run build",
       "outputDirectory": "dist",
       "framework": "vite"
