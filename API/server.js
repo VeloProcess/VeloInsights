@@ -22,28 +22,40 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '50mb' }));
-app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Configuração do Multer para upload
 const storage = multer.memoryStorage(); // Usar memória em vez de disco
 const upload = multer({ 
   storage: storage,
   limits: { 
-    fileSize: 50 * 1024 * 1024, // 50MB limite
+    fileSize: 100 * 1024 * 1024, // 100MB limite (aumentado)
     files: 1 // apenas 1 arquivo por vez
   },
   fileFilter: (req, file, cb) => {
-    // Validar tipos de arquivo permitidos
+    console.log('📊 Arquivo recebido:', file.originalname);
+    console.log('📊 MIME Type:', file.mimetype);
+    console.log('📊 Fieldname:', file.fieldname);
+    
+    // Validar tipos de arquivo permitidos (mais flexível)
     const allowedTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
       'application/vnd.ms-excel', // .xls
-      'text/csv' // .csv
+      'text/csv', // .csv
+      'application/octet-stream', // Fallback para .xlsx
+      'application/x-zip-compressed' // Outro tipo comum para .xlsx
     ];
     
-    if (allowedTypes.includes(file.mimetype)) {
+    // Verificar também pela extensão
+    const allowedExtensions = ['.xlsx', '.xls', '.csv'];
+    const fileExtension = file.originalname.toLowerCase().substring(file.originalname.lastIndexOf('.'));
+    
+    if (allowedTypes.includes(file.mimetype) || allowedExtensions.includes(fileExtension)) {
+      console.log('✅ Arquivo aceito:', file.originalname);
       cb(null, true);
     } else {
+      console.log('❌ Arquivo rejeitado:', file.originalname, 'MIME:', file.mimetype);
       cb(new Error('Tipo de arquivo não permitido. Use .xlsx, .xls ou .csv'), false);
     }
   }
@@ -127,6 +139,34 @@ app.post('/api/upload', upload.single('planilha'), (req, res) => {
       type: req.file.mimetype
     },
     note: 'Processamento de planilha será implementado em breve'
+  });
+});
+
+// Middleware de tratamento de erro do Multer
+app.use((error, req, res, next) => {
+  console.log('❌ Erro no upload:', error.message);
+  
+  if (error instanceof multer.MulterError) {
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        success: false,
+        error: 'Arquivo muito grande',
+        message: 'O arquivo deve ter no máximo 100MB'
+      });
+    }
+    if (error.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({
+        success: false,
+        error: 'Muitos arquivos',
+        message: 'Envie apenas um arquivo por vez'
+      });
+    }
+  }
+  
+  res.status(400).json({
+    success: false,
+    error: error.message,
+    message: 'Erro no upload do arquivo'
   });
 });
 
