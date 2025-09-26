@@ -22,7 +22,7 @@ function App() {
 
   const fetchDados = async () => {
     try {
-      const response = await fetch('https://veloinsights-api.vercel.app/api/dados')
+      const response = await fetch('https://velo-insights.vercel.app/api/dados')
       const data = await response.json()
       setDados(data)
     } catch (error) {
@@ -36,7 +36,7 @@ function App() {
       const formData = new FormData()
       formData.append('planilha', file)
 
-      const response = await fetch('https://veloinsights-api.vercel.app/api/upload', {
+      const response = await fetch('https://velo-insights.vercel.app/api/upload', {
         method: 'POST',
         body: formData
       })
@@ -46,7 +46,7 @@ function App() {
       if (result.success) {
         if (result.processing === false) {
           // Arquivo grande - usar endpoint separado
-          const processResponse = await fetch('https://veloinsights-api.vercel.app/api/process-large', {
+          const processResponse = await fetch('https://velo-insights.vercel.app/api/process-large', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fileId: result.fileId })

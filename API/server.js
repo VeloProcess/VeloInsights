@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3001;
 // CORS configurado PRIMEIRO (antes de outros middlewares)
 app.use(cors({
   origin: process.env.NODE_ENV === 'production' 
-    ? ['https://veloinsights-app.vercel.app'] 
+    ? ['https://veloinsights-app.vercel.app', 'https://veloinsights-public.vercel.app'] 
     : ['http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -40,9 +40,15 @@ app.use('/api/', limiter);
 
 // Middleware adicional para garantir CORS
 app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
-    ? 'https://veloinsights-app.vercel.app' 
-    : 'http://localhost:3000');
+  const allowedOrigins = process.env.NODE_ENV === 'production' 
+    ? ['https://veloinsights-app.vercel.app', 'https://veloinsights-public.vercel.app']
+    : ['http://localhost:3000'];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+  }
+  
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
