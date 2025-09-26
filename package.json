@@ -1,16 +1,15 @@
 {
   "name": "veloinsights",
   "version": "1.0.0",
+  "description": "VeloInsights Dashboard - Monorepo",
   "private": true,
   "scripts": {
-    "build": "vite build"
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "install-all": "cd frontend && npm install && cd ../API && npm install"
   },
-  "dependencies": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-react": "4.2.1",
-    "vite": "5.2.0"
-  }
+  "workspaces": [
+    "frontend",
+    "API"
+  ]
 }
