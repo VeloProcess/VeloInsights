@@ -1,5 +1,4 @@
 # Ignorar pastas que podem causar confusão
-frontend/
 API/
 docs/
 extracted/
