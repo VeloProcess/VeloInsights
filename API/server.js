@@ -9,24 +9,12 @@ const PORT = process.env.PORT || 3001;
 console.log('🚀 Iniciando API VeloInsights - Versão Ultra Simplificada...');
 console.log('📊 Porta:', PORT);
 
-// CORS ESPECÍFICO PARA VELOINSIGHTS
+// CORS FUNCIONANDO - MANTER SIMPLES
 app.use((req, res, next) => {
   console.log('🌐 CORS middleware executado para:', req.method, req.path);
   console.log('🌐 Origin:', req.headers.origin);
   
-  // Permitir apenas o frontend específico
-  const allowedOrigins = [
-    'https://veloinsights-app.vercel.app',
-    'https://veloinsights-public.vercel.app'
-  ];
-  
-  const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
-    res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    res.header('Access-Control-Allow-Origin', 'https://veloinsights-app.vercel.app');
-  }
-  
+  res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   res.header('Access-Control-Allow-Credentials', 'true');
