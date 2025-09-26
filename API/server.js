@@ -21,7 +21,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Endpoint básico para verificar se a API está funcionando
 app.get('/api', (req, res) => {
@@ -77,10 +78,19 @@ app.get('/api/health', (req, res) => {
 // Endpoint de upload simplificado (sem processamento)
 app.post('/api/upload', (req, res) => {
   console.log('📁 Endpoint /api/upload chamado');
+  console.log('📊 Headers:', req.headers);
+  console.log('📊 Body type:', typeof req.body);
+  console.log('📊 Body keys:', Object.keys(req.body || {}));
+  
   res.json({
     success: true,
     message: 'Upload endpoint funcionando (sem processamento)',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    received: {
+      headers: req.headers,
+      bodyType: typeof req.body,
+      bodyKeys: Object.keys(req.body || {})
+    }
   });
 });
 
