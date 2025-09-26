@@ -5,54 +5,30 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const path = require('path');
 const fs = require('fs');
-const helmet = require('helmet');
-const compression = require('compression');
-const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// CORS configurado PRIMEIRO (antes de outros middlewares)
-app.use(cors({
-  origin: true, // Permitir todas as origens temporariamente
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  optionsSuccessStatus: 200
-}));
+// Log de inicialização
+console.log('🚀 Iniciando API VeloInsights...');
+console.log('📊 Porta:', PORT);
+console.log('🌐 Ambiente:', process.env.NODE_ENV || 'development');
 
-// Middleware de segurança (após CORS)
-app.use(helmet({
-  crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false
-}));
-app.use(compression());
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 100, // máximo 100 requests por IP
-  message: 'Muitas requisições deste IP, tente novamente em 15 minutos.'
-});
-app.use('/api/', limiter);
-
-// Middleware adicional para garantir CORS
+// CORS SIMPLES E DIRETO
 app.use((req, res, next) => {
-  // Permitir todas as origens temporariamente
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-  res.header('Access-Control-Allow-Credentials', 'true');
   
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
-  } else {
-    next();
+    return;
   }
+  next();
 });
 
-app.use(express.json({ limit: '50mb' })); // Reduzido para 50MB (Vercel free tier)
-app.use(express.static('public'));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Configuração do Multer para upload
 const storage = multer.diskStorage({
@@ -317,23 +293,19 @@ app.post('/api/upload', upload.single('planilha'), async (req, res) => {
   }
 });
 
-// Buscar dados salvos
+// Buscar dados salvos - VERSÃO SIMPLIFICADA
 app.get('/api/dados', (req, res) => {
-  try {
-    // Retornar dados vazios por padrão para evitar erros
-    res.json({ 
-      tipo: 'ligacoes',
-      atendimentos: [], 
-      operadores: [],
-      acoesOperador: []
-    });
-  } catch (error) {
-    console.error('Erro ao buscar dados:', error);
-    res.status(500).json({ 
-      error: 'Erro ao buscar dados',
-      details: error.message 
-    });
-  }
+  console.log('📊 Endpoint /api/dados chamado');
+  
+  const dadosVazios = { 
+    tipo: 'ligacoes',
+    atendimentos: [], 
+    operadores: [],
+    acoesOperador: []
+  };
+  
+  console.log('✅ Retornando dados vazios:', dadosVazios);
+  res.json(dadosVazios);
 });
 
 // Limpar dados
@@ -414,22 +386,26 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Teste simples
+// Teste simples - VERSÃO SIMPLIFICADA
 app.get('/api/test', (req, res) => {
+  console.log('🧪 Endpoint /api/test chamado');
   res.json({ 
     message: 'API funcionando!',
     timestamp: new Date().toISOString(),
     cors: 'enabled',
-    status: 'OK'
+    status: 'OK',
+    version: '2.0.0-simplified'
   });
 });
 
 // Endpoint básico para verificar se a API está funcionando
 app.get('/api', (req, res) => {
+  console.log('🏠 Endpoint /api chamado');
   res.json({ 
     message: 'VeloInsights API',
     version: '2.0.0',
     status: 'OK',
+    cors: 'enabled',
     endpoints: ['/api/test', '/api/dados', '/api/upload', '/api/health']
   });
 });
