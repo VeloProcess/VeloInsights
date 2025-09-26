@@ -52,8 +52,6 @@ function App() {
     try {
       console.log('📁 Iniciando upload do arquivo:', file.name, 'Tamanho:', (file.size / 1024 / 1024).toFixed(2) + 'MB')
       
-
-
       // Para arquivos grandes (>10MB), usar upload em chunks
       if (file.size > 10 * 1024 * 1024) {
         console.log('📊 Arquivo grande detectado, usando upload em chunks')
@@ -112,8 +110,8 @@ function App() {
     try {
       console.log('📊 Iniciando upload em chunks para arquivo grande')
       
-      // Dividir arquivo em chunks de 5MB
-      const chunkSize = 5 * 1024 * 1024
+      // Dividir arquivo em chunks de 2MB
+      const chunkSize = 2 * 1024 * 1024
       const totalChunks = Math.ceil(file.size / chunkSize)
       const fileId = 'file_' + Date.now()
       
