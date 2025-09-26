@@ -420,7 +420,16 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     timestamp: new Date().toISOString(),
-    uptime: process.uptime()
+    uptime: process.uptime(),
+    cors: 'enabled'
+  });
+});
+
+// Teste simples
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'API funcionando!',
+    timestamp: new Date().toISOString()
   });
 });
 
