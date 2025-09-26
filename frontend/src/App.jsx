@@ -53,7 +53,7 @@ function App() {
       const formData = new FormData()
       formData.append('planilha', file)
 
-      const response = await fetch('https://velo-insights.vercel.app/api/upload', {
+      const response = await fetch('https://velo-insights.vercel.app/api/upload?t=' + Date.now(), {
         method: 'POST',
         body: formData
       })
