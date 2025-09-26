@@ -52,6 +52,15 @@ function App() {
     try {
       console.log('📁 Iniciando upload do arquivo:', file.name, 'Tamanho:', (file.size / 1024 / 1024).toFixed(2) + 'MB')
       
+
+
+      // Para arquivos grandes (>10MB), usar upload em chunks
+      if (file.size > 10 * 1024 * 1024) {
+        console.log('📊 Arquivo grande detectado, usando upload em chunks')
+        await uploadLargeFile(file)
+        return
+      }
+      
       const formData = new FormData()
       formData.append('planilha', file)
 
@@ -96,6 +105,78 @@ function App() {
       alert('Erro no upload: ' + error.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const uploadLargeFile = async (file) => {
+    try {
+      console.log('📊 Iniciando upload em chunks para arquivo grande')
+      
+      // Dividir arquivo em chunks de 5MB
+      const chunkSize = 5 * 1024 * 1024
+      const totalChunks = Math.ceil(file.size / chunkSize)
+      const fileId = 'file_' + Date.now()
+      
+      console.log('📊 Total de chunks:', totalChunks)
+      
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize
+        const end = Math.min(start + chunkSize, file.size)
+        const chunk = file.slice(start, end)
+        
+        const formData = new FormData()
+        formData.append('chunk', chunk)
+        formData.append('fileId', fileId)
+        formData.append('chunkIndex', i)
+        formData.append('totalChunks', totalChunks)
+        formData.append('fileName', file.name)
+        
+        console.log(`📊 Enviando chunk ${i + 1}/${totalChunks}`)
+        
+        const response = await fetch('https://velo-insights.vercel.app/api/upload-chunk', {
+          method: 'POST',
+          body: formData,
+          mode: 'cors',
+          credentials: 'omit'
+        })
+        
+        if (!response.ok) {
+          throw new Error(`Erro no chunk ${i + 1}: ${response.status}`)
+        }
+        
+        const result = await response.json()
+        console.log(`📊 Chunk ${i + 1} enviado:`, result)
+      }
+      
+      // Processar arquivo completo
+      console.log('📊 Todos os chunks enviados, processando arquivo completo')
+      const processResponse = await fetch('https://velo-insights.vercel.app/api/process-chunks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId: fileId, fileName: file.name }),
+        mode: 'cors',
+        credentials: 'omit'
+      })
+      
+      if (!processResponse.ok) {
+        throw new Error(`Erro ao processar arquivo: ${processResponse.status}`)
+      }
+      
+      const processResult = await processResponse.json()
+      console.log('📊 Arquivo processado:', processResult)
+      
+      if (processResult.success) {
+        alert('Upload realizado com sucesso! Arquivo: ' + file.name)
+        if (processResult.data) {
+          setDados(processResult.data)
+        }
+      } else {
+        alert('Erro ao processar arquivo: ' + processResult.message)
+      }
+      
+    } catch (error) {
+      console.error('❌ Erro no upload em chunks:', error)
+      alert('Erro no upload em chunks: ' + error.message)
     }
   }
 

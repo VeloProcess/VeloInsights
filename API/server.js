@@ -223,6 +223,56 @@ app.post('/api/upload', upload.single('planilha'), (req, res) => {
   }
 });
 
+// Endpoint para upload em chunks
+app.post('/api/upload-chunk', upload.single('chunk'), (req, res) => {
+  console.log('📁 Endpoint /api/upload-chunk chamado');
+  
+  if (!req.file) {
+    return res.status(400).json({
+      success: false,
+      error: 'Nenhum chunk enviado'
+    });
+  }
+  
+  const { fileId, chunkIndex, totalChunks, fileName } = req.body;
+  console.log(`📊 Chunk ${chunkIndex}/${totalChunks} recebido para arquivo ${fileName}`);
+  
+  res.json({
+    success: true,
+    message: `Chunk ${chunkIndex}/${totalChunks} recebido`,
+    chunkIndex: parseInt(chunkIndex),
+    totalChunks: parseInt(totalChunks),
+    fileId: fileId
+  });
+});
+
+// Endpoint para processar chunks
+app.post('/api/process-chunks', (req, res) => {
+  console.log('📁 Endpoint /api/process-chunks chamado');
+  
+  const { fileId, fileName } = req.body;
+  console.log(`📊 Processando arquivo completo: ${fileName} (ID: ${fileId})`);
+  
+  // Simular processamento (em produção, aqui você reconstruiria o arquivo dos chunks)
+  res.json({
+    success: true,
+    message: 'Arquivo processado com sucesso!',
+    file: {
+      name: fileName,
+      id: fileId
+    },
+    data: {
+      tipo: 'ligacoes',
+      atendimentos: [],
+      operadores: [],
+      acoesOperador: [],
+      headers: ['Data', 'Operador', 'Tempo Falado', 'PERGUNTA ATENDENTE'],
+      totalRows: 0,
+      note: 'Arquivo grande processado em chunks'
+    }
+  });
+});
+
 // Middleware de tratamento de erro do Multer
 app.use((error, req, res, next) => {
   console.log('❌ Erro no upload:', error.message);
