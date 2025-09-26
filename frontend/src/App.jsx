@@ -6,7 +6,12 @@ import './index.css'
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 function App() {
-  const [dados, setDados] = useState({ atendimentos: [], operadores: [] })
+  const [dados, setDados] = useState({ 
+    tipo: 'ligacoes',
+    atendimentos: [], 
+    operadores: [],
+    acoesOperador: []
+  })
   const [loading, setLoading] = useState(false)
   const [operadorSelecionado, setOperadorSelecionado] = useState('')
 
@@ -62,8 +67,8 @@ function App() {
     }
   }
 
-  // Calcular métricas
-  const totalAtendimentos = dados.atendimentos.length
+  // Calcular métricas baseado no tipo de dados
+  const totalAtendimentos = dados.atendimentos ? dados.atendimentos.length : 0
   const duracaoMedia = totalAtendimentos > 0 
     ? Math.round(dados.atendimentos.reduce((acc, att) => acc + att.duracao_segundos, 0) / totalAtendimentos)
     : 0
@@ -74,6 +79,16 @@ function App() {
 
   const avaliacaoMediaSolucao = totalAtendimentos > 0
     ? (dados.atendimentos.reduce((acc, att) => acc + (att.avaliacao_solucao || 0), 0) / totalAtendimentos).toFixed(1)
+    : 0
+
+  // Métricas do módulo de operador
+  const totalAcoesOperador = dados.acoesOperador ? dados.acoesOperador.length : 0
+  const tempoMedioLogado = totalAcoesOperador > 0
+    ? Math.round(dados.acoesOperador.reduce((acc, acao) => acc + acao.tm_logado_segundos, 0) / totalAcoesOperador)
+    : 0
+
+  const tempoMedioPausado = totalAcoesOperador > 0
+    ? Math.round(dados.acoesOperador.reduce((acc, acao) => acc + acao.tm_pausado_segundos, 0) / totalAcoesOperador)
     : 0
 
   // Dados para gráfico
@@ -106,24 +121,45 @@ function App() {
         </section>
 
         <section className="metrics-section">
-          <h2>📊 Métricas Gerais</h2>
+          <h2>📊 Métricas - {dados.tipo === 'ligacoes' ? 'Detalhes de Ligações' : dados.tipo === 'operador' ? 'Ações de Operador' : 'Módulo Misto'}</h2>
           <div className="metrics-grid">
-            <div className="metric-card">
-              <h3>Total Atendimentos</h3>
-              <p className="metric-value">{totalAtendimentos}</p>
-            </div>
-            <div className="metric-card">
-              <h3>Duração Média</h3>
-              <p className="metric-value">{duracaoMedia}s</p>
-            </div>
-            <div className="metric-card">
-              <h3>Avaliação Atendimento</h3>
-              <p className="metric-value">{avaliacaoMediaAtendimento}/5</p>
-            </div>
-            <div className="metric-card">
-              <h3>Avaliação Solução</h3>
-              <p className="metric-value">{avaliacaoMediaSolucao}/5</p>
-            </div>
+            {dados.tipo === 'ligacoes' || dados.tipo === 'misto' ? (
+              <>
+                <div className="metric-card">
+                  <h3>Total Atendimentos</h3>
+                  <p className="metric-value">{totalAtendimentos}</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Duração Média</h3>
+                  <p className="metric-value">{duracaoMedia}s</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Avaliação Atendimento</h3>
+                  <p className="metric-value">{avaliacaoMediaAtendimento}/5</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Avaliação Solução</h3>
+                  <p className="metric-value">{avaliacaoMediaSolucao}/5</p>
+                </div>
+              </>
+            ) : null}
+            
+            {dados.tipo === 'operador' || dados.tipo === 'misto' ? (
+              <>
+                <div className="metric-card">
+                  <h3>Total Ações</h3>
+                  <p className="metric-value">{totalAcoesOperador}</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Tempo Médio Logado</h3>
+                  <p className="metric-value">{tempoMedioLogado}s</p>
+                </div>
+                <div className="metric-card">
+                  <h3>Tempo Médio Pausado</h3>
+                  <p className="metric-value">{tempoMedioPausado}s</p>
+                </div>
+              </>
+            ) : null}
           </div>
         </section>
 

@@ -12,8 +12,22 @@ const rateLimit = require('express-rate-limit');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Middleware de segurança
-app.use(helmet());
+// CORS configurado PRIMEIRO (antes de outros middlewares)
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://veloinsights-app.vercel.app'] 
+    : ['http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
+}));
+
+// Middleware de segurança (após CORS)
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false
+}));
 app.use(compression());
 
 // Rate limiting
@@ -24,13 +38,21 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// CORS configurado
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://veloinsights-app.vercel.app'] 
-    : ['http://localhost:3000'],
-  credentials: true
-}));
+// Middleware adicional para garantir CORS
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' 
+    ? 'https://veloinsights-app.vercel.app' 
+    : 'http://localhost:3000');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+});
 
 app.use(express.json({ limit: '100mb' }));
 app.use(express.static('public'));
@@ -133,8 +155,13 @@ const processarPlanilha = (filePath) => {
     const headers = jsonData[0];
     const rows = jsonData.slice(1);
     
+    // Detectar tipo de módulo baseado nos headers
+    const isModuloLigacoes = headers.includes('Chamada') && headers.includes('Operador');
+    const isModuloOperador = headers.includes('Duração') && headers.includes('Motivo da Pauda');
+    
     const atendimentos = [];
     const operadores = new Set();
+    const acoesOperador = [];
 
     // Processar em lotes para arquivos grandes
     const batchSize = 1000; // Processar 1000 linhas por vez
@@ -152,24 +179,43 @@ const processarPlanilha = (filePath) => {
         rowObj[header] = row[index] || '';
       });
       
-      // Validação de segurança: verificar se é uma linha válida
-      if (rowObj['Chamada'] === 'Atendida' && rowObj['Operador'] && 
+      // Processar Módulo "Detalhes de Ligações"
+      if (isModuloLigacoes && rowObj['Chamada'] === 'Atendida' && rowObj['Operador'] && 
           typeof rowObj['Operador'] === 'string' && rowObj['Operador'].trim()) {
         
         // Sanitizar dados de entrada
-        const operador = rowObj['Operador'].trim().substring(0, 100); // Limitar tamanho
+        const operador = rowObj['Operador'].trim().substring(0, 100);
         const dataAtendimento = rowObj['Data Atendimento'] ? rowObj['Data Atendimento'].toString() : '';
         const horaAtendimento = rowObj['Hora Atendimento'] ? rowObj['Hora Atendimento'].toString() : '';
         
         atendimentos.push({
           operador: operador,
+          data: rowObj['Data'] || '',
           data_atendimento: parseDateTime(dataAtendimento, horaAtendimento),
+          tempo_falado: rowObj['Tempo Falado'] || '',
           duracao_segundos: hmsToSeconds(rowObj['Tempo Falado']),
           avaliacao_atendimento: parseInt(rowObj['Pergunta2 1 PERGUNTA ATENDENTE']) || null,
           avaliacao_solucao: parseInt(rowObj['Pergunta2 2 PERGUNTA SOLUCAO']) || null,
+          chamada: rowObj['Chamada'] || '',
+          desconexao: rowObj['Desconexão'] || '',
           id: rowObj['Id Ligação'] || Math.random()
         });
         operadores.add(operador);
+      }
+      
+      // Processar Módulo "Ações de Operador"
+      if (isModuloOperador && rowObj['Duração'] && rowObj['Motivo da Pauda']) {
+        acoesOperador.push({
+          duracao: rowObj['Duração'] || '',
+          duracao_segundos: hmsToSeconds(rowObj['Duração']),
+          motivo_pausa: rowObj['Motivo da Pauda'] || '',
+          data_pausa: rowObj['Data Inicial'] || '',
+          tm_logado_dia: rowObj['T M Logado / Dia'] || '',
+          tm_logado_segundos: hmsToSeconds(rowObj['T M Logado / Dia']),
+          tm_pausado: rowObj['T M Pausado'] || '',
+          tm_pausado_segundos: hmsToSeconds(rowObj['T M Pausado']),
+          id: Math.random()
+        });
       }
       });
       
@@ -181,7 +227,33 @@ const processarPlanilha = (filePath) => {
     }
     
     const operadoresList = Array.from(operadores).sort();
-    return { atendimentos, operadores: operadoresList };
+    
+    // Retornar dados baseado no tipo de módulo detectado
+    if (isModuloLigacoes && isModuloOperador) {
+      // Planilha mista - ambos os módulos
+      return { 
+        tipo: 'misto',
+        atendimentos, 
+        operadores: operadoresList,
+        acoesOperador
+      };
+    } else if (isModuloLigacoes) {
+      // Apenas módulo de ligações
+      return { 
+        tipo: 'ligacoes',
+        atendimentos, 
+        operadores: operadoresList
+      };
+    } else if (isModuloOperador) {
+      // Apenas módulo de operador
+      return { 
+        tipo: 'operador',
+        acoesOperador
+      };
+    } else {
+      // Tipo não reconhecido
+      throw new Error('Tipo de planilha não reconhecido. Verifique se contém os campos necessários.');
+    }
   } catch (error) {
     throw new Error('Erro ao processar planilha: ' + error.message);
   }
