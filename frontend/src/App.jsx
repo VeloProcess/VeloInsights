@@ -24,9 +24,26 @@ function App() {
     try {
       const response = await fetch('https://velo-insights.vercel.app/api/dados')
       const data = await response.json()
-      setDados(data)
+      console.log('📊 Dados recebidos da API:', data)
+      
+      // Garantir que dados tenha estrutura válida
+      const dadosSeguros = {
+        tipo: data.tipo || 'ligacoes',
+        atendimentos: data.atendimentos || [],
+        operadores: data.operadores || [],
+        acoesOperador: data.acoesOperador || []
+      }
+      
+      setDados(dadosSeguros)
     } catch (error) {
       console.error('Erro ao buscar dados:', error)
+      // Manter dados padrão em caso de erro
+      setDados({
+        tipo: 'ligacoes',
+        atendimentos: [],
+        operadores: [],
+        acoesOperador: []
+      })
     }
   }
 
@@ -44,6 +61,8 @@ function App() {
       const result = await response.json()
       
       if (result.success) {
+        console.log('✅ Upload bem-sucedido:', result)
+        
         if (result.processing === false) {
           // Arquivo grande - usar endpoint separado
           const processResponse = await fetch('https://velo-insights.vercel.app/api/process-large', {
@@ -53,12 +72,27 @@ function App() {
           })
           const processResult = await processResponse.json()
           if (processResult.success) {
-            setDados(processResult.data)
+            // Garantir estrutura válida
+            const dadosSeguros = {
+              tipo: processResult.data?.tipo || 'ligacoes',
+              atendimentos: processResult.data?.atendimentos || [],
+              operadores: processResult.data?.operadores || [],
+              acoesOperador: processResult.data?.acoesOperador || []
+            }
+            setDados(dadosSeguros)
           }
         } else {
           // Arquivo pequeno - processado diretamente
-          setDados(result.data)
+          const dadosSeguros = {
+            tipo: result.data?.tipo || 'ligacoes',
+            atendimentos: result.data?.atendimentos || [],
+            operadores: result.data?.operadores || [],
+            acoesOperador: result.data?.acoesOperador || []
+          }
+          setDados(dadosSeguros)
         }
+      } else {
+        console.error('❌ Upload falhou:', result)
       }
     } catch (error) {
       console.error('Erro no upload:', error)
@@ -175,16 +209,18 @@ function App() {
           </div>
         </section>
 
-        <section className="operadores-section">
-          <h2>👥 Operadores</h2>
-          <div className="operadores-list">
-            {dados.operadores.map(operador => (
-              <div key={operador} className="operador-item">
-                {operador}
-              </div>
-            ))}
-          </div>
-        </section>
+        {(dados.operadores && dados.operadores.length > 0) && (
+          <section className="operadores-section">
+            <h2>👥 Operadores</h2>
+            <div className="operadores-list">
+              {dados.operadores.map(operador => (
+                <div key={operador} className="operador-item">
+                  {operador}
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   )
