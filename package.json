@@ -1,0 +1,14 @@
+{
+  "name": "veloinsights",
+  "version": "1.0.0",
+  "description": "Veloinsights Dashboard",
+  "type": "module",
+  "scripts": {
+    "dev": "cd public && npm run dev",
+    "build": "cd public && npm install && npm run build",
+    "preview": "cd public && npm run preview",
+    "vercel-build": "cd public && npm install && npm run build"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

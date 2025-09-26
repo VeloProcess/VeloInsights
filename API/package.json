@@ -1,7 +1,7 @@
 {
   "name": "veloinsights-api",
-  "version": "1.0.0",
-  "description": "API Backend para Veloinsights Dashboard",
+  "version": "2.0.0",
+  "description": "API Backend para VeloInsights Dashboard - Suporte a arquivos grandes",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -24,5 +24,14 @@
   },
   "engines": {
     "node": ">=18.0.0"
-  }
+  },
+  "keywords": [
+    "velotax",
+    "dashboard",
+    "atendimentos",
+    "api",
+    "nodejs"
+  ],
+  "author": "VeloProcess",
+  "license": "UNLICENSED"
 }
