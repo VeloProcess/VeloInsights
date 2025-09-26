@@ -1,7 +1,7 @@
 {
-  "name": "velodados-local",
-  "private": true,
+  "name": "veloinsights-public",
   "version": "1.0.0",
+  "description": "Frontend público para Veloinsights Dashboard",
   "type": "module",
   "scripts": {
     "dev": "vite",

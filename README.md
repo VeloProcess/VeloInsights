@@ -1,113 +1,161 @@
-# Velodados - Dashboard de Atendimentos
+# 🚀 VeloInsights - Dashboard de Atendimentos
 
-Sistema de análise de dados de atendimentos desenvolvido para a Velotax, com arquitetura local sem backend.
+Sistema completo de análise de dados de atendimentos desenvolvido para a Velotax, com arquitetura moderna e suporte a arquivos grandes.
 
-## 🚀 Funcionalidades
+## 📊 **VISÃO GERAL**
 
-- **Upload de Planilhas**: Suporte para arquivos .xlsx e .csv
-- **Dashboard Geral**: Métricas consolidadas de toda a operação
-- **Análise Individual**: Dashboard específico por operador
-- **Filtros de Data**: Análise por período específico
-- **Gráficos Interativos**: Visualizações com Chart.js
-- **Interface Responsiva**: Design moderno e adaptável
+O VeloInsights é uma solução completa que permite:
+- 📈 **Análise de dados** de atendimentos em tempo real
+- 📊 **Dashboard interativo** com gráficos e métricas
+- 📁 **Upload de planilhas** grandes (até 100MB)
+- 🔍 **Análise individual** por operador
+- 📅 **Filtros de data** flexíveis
 
-## 📊 Métricas Disponíveis
+---
 
-### Dashboard Geral
+## 🏗️ **ARQUITETURA**
+
+### **Backend (API):**
+- **Tecnologia:** Node.js + Express
+- **Processamento:** XLSX otimizado para arquivos grandes
+- **Deploy:** Vercel (plano gratuito)
+- **URL:** `https://veloinsights-api.vercel.app`
+
+### **Frontend:**
+- **Tecnologia:** React 18 + Vite
+- **UI:** Design system VeloHub
+- **Gráficos:** Chart.js
+- **Deploy:** Vercel (plano gratuito)
+- **URL:** `https://veloinsights-app.vercel.app`
+
+---
+
+## 📁 **ESTRUTURA DO PROJETO**
+
+```
+VeloInsights/
+├── api/                    # Backend API
+│   ├── package.json        # Dependências da API
+│   ├── server.js          # Servidor principal
+│   ├── vercel.json        # Configuração Vercel
+│   └── README.md          # Documentação da API
+├── frontend/               # Frontend React
+│   ├── package.json        # Dependências do Frontend
+│   ├── vite.config.js     # Configuração Vite
+│   ├── vercel.json        # Configuração Vercel
+│   ├── src/               # Código fonte React
+│   └── README.md          # Documentação do Frontend
+├── docs/                   # Documentação
+│   ├── DEPLOY.md          # Guia de deploy
+│   ├── API.md             # Documentação da API
+│   └── FRONTEND.md        # Documentação do Frontend
+├── scripts/                # Scripts úteis
+│   ├── deploy.sh          # Deploy automático
+│   └── dev.sh             # Desenvolvimento local
+└── README.md              # Este arquivo
+```
+
+---
+
+## 🚀 **DEPLOY RÁPIDO**
+
+### **1. Deploy da API:**
+```bash
+cd api
+vercel --prod
+```
+
+### **2. Deploy do Frontend:**
+```bash
+cd frontend
+npm run build
+vercel --prod
+```
+
+---
+
+## 📊 **FUNCIONALIDADES**
+
+### **Dashboard Geral:**
 - Total de atendimentos
 - Duração média por atendimento
 - Avaliação média do atendente
 - Avaliação média da solução
 - Número de operadores únicos
-- Atendimentos no período de funcionamento (8h-19h)
+- Atendimentos no horário comercial
 
-### Dashboard Individual
-- Métricas específicas do operador selecionado
+### **Análise Individual:**
+- Métricas específicas por operador
 - Lista detalhada de atendimentos
-- Gráficos personalizados por operador
+- Gráficos personalizados
+- Comparação de performance
 
-## 🛠️ Tecnologias Utilizadas
+### **Upload de Dados:**
+- Suporte a .xlsx, .xls, .csv
+- Arquivos até 100MB
+- Processamento em background
+- Validação de dados
 
-- **React 18** - Framework frontend
-- **Vite** - Build tool e dev server
-- **Chart.js** - Gráficos e visualizações
-- **React DatePicker** - Seleção de datas
-- **React Dropzone** - Upload de arquivos
-- **XLSX** - Processamento de planilhas
-- **Date-fns** - Manipulação de datas
+---
 
-## 📦 Instalação
+## 🛠️ **TECNOLOGIAS**
 
-1. Clone o repositório
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
+### **Backend:**
+- Node.js 18+
+- Express.js
+- XLSX (processamento de planilhas)
+- Multer (upload de arquivos)
+- CORS (comunicação frontend)
 
-3. Execute o projeto em modo de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
+### **Frontend:**
+- React 18
+- Vite (build tool)
+- Chart.js (gráficos)
+- React-Dropzone (upload)
+- Date-fns (manipulação de datas)
 
-4. Acesse `http://localhost:3000` no seu navegador
+---
 
-## 📁 Estrutura do Projeto
+## 📋 **FORMATO DA PLANILHA**
 
-```
-src/
-├── components/          # Componentes React
-│   ├── AtendimentoItem.jsx
-│   ├── CardIndicador.jsx
-│   ├── DashboardGeral.jsx
-│   ├── DashboardOperador.jsx
-│   ├── FiltroData.jsx
-│   ├── GraficoAtendimentosPorDia.jsx
-│   ├── GraficoAvaliacoes.jsx
-│   ├── Header.jsx
-│   ├── SeletorOperador.jsx
-│   └── Uploader.jsx
-├── context/            # Contexto React para estado global
-│   └── DataContext.jsx
-├── utils/              # Utilitários
-│   └── dataParser.js
-├── App.jsx             # Componente principal
-├── main.jsx            # Ponto de entrada
-└── index.css           # Estilos globais
-```
+O sistema espera planilhas com as colunas:
+- **Chamada:** Status (deve conter "Atendida")
+- **Operador:** Nome do atendente
+- **Data Atendimento:** DD/MM/AAAA
+- **Hora Atendimento:** HH:MM:SS
+- **Tempo Falado:** HH:MM:SS
+- **Pergunta2 1 PERGUNTA ATENDENTE:** Avaliação 1-5
+- **Pergunta2 2 PERGUNTA SOLUCAO:** Avaliação 1-5
+- **Id Ligação:** ID único
 
-## 📋 Formato da Planilha
+---
 
-O sistema espera uma planilha com as seguintes colunas:
-- **Chamada**: Status da chamada (deve conter "Atendida")
-- **Operador**: Nome do operador
-- **Data Atendimento**: Data no formato DD/MM/AAAA
-- **Hora Atendimento**: Hora no formato HH:MM:SS
-- **Tempo Falado**: Duração no formato HH:MM:SS
-- **Pergunta2 1 PERGUNTA ATENDENTE**: Avaliação do atendente (1-5)
-- **Pergunta2 2 PERGUNTA SOLUCAO**: Avaliação da solução (1-5)
-- **Id Ligação**: ID único da ligação
+## 🎨 **DESIGN SYSTEM**
 
-## 🎨 Design
+- **Paleta:** Azuis corporativos Velotax
+- **Tipografia:** Poppins + Anton
+- **Componentes:** Sistema VeloHub
+- **Responsividade:** Mobile-first
+- **Tema:** Claro/Escuro
 
-O sistema utiliza um design profissional baseado nas diretrizes da Velotax, com:
-- Cores corporativas (#0052cc como cor primária)
-- Interface limpa e intuitiva
-- Componentes responsivos
-- Tipografia moderna (Inter)
+---
 
-## 📱 Responsividade
+## 📞 **SUPORTE**
 
-O dashboard é totalmente responsivo e funciona em:
-- Desktop
-- Tablet
-- Smartphone
+Para problemas ou dúvidas:
+1. Verificar logs na Vercel Dashboard
+2. Testar endpoints da API
+3. Validar formato da planilha
+4. Verificar configurações de CORS
 
-## 🔧 Scripts Disponíveis
+---
 
-- `npm run dev` - Executa o servidor de desenvolvimento
-- `npm run build` - Gera build de produção
-- `npm run preview` - Visualiza o build de produção
-
-## 📄 Licença
+## 📄 **LICENÇA**
 
 Este projeto é propriedade da Velotax e destinado ao uso interno da empresa.
+
+---
+
+## 🏷️ **VERSÃO**
+
+**v2.0.0** - Arquitetura separada com suporte a arquivos grandes
