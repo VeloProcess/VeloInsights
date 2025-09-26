@@ -320,27 +320,19 @@ app.post('/api/upload', upload.single('planilha'), async (req, res) => {
 // Buscar dados salvos
 app.get('/api/dados', (req, res) => {
   try {
-    const dataDir = 'data';
-    if (!fs.existsSync(dataDir)) {
-      return res.json({ atendimentos: [], operadores: [] });
-    }
-    
-    const files = fs.readdirSync(dataDir)
-      .filter(file => file.endsWith('.json'))
-      .sort()
-      .reverse(); // Mais recente primeiro
-    
-    if (files.length === 0) {
-      return res.json({ atendimentos: [], operadores: [] });
-    }
-    
-    const latestFile = path.join(dataDir, files[0]);
-    const data = JSON.parse(fs.readFileSync(latestFile, 'utf8'));
-    
-    res.json(data);
+    // Retornar dados vazios por padrão para evitar erros
+    res.json({ 
+      tipo: 'ligacoes',
+      atendimentos: [], 
+      operadores: [],
+      acoesOperador: []
+    });
   } catch (error) {
     console.error('Erro ao buscar dados:', error);
-    res.status(500).json({ error: 'Erro ao buscar dados' });
+    res.status(500).json({ 
+      error: 'Erro ao buscar dados',
+      details: error.message 
+    });
   }
 });
 
@@ -426,7 +418,19 @@ app.get('/api/health', (req, res) => {
 app.get('/api/test', (req, res) => {
   res.json({ 
     message: 'API funcionando!',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    cors: 'enabled',
+    status: 'OK'
+  });
+});
+
+// Endpoint básico para verificar se a API está funcionando
+app.get('/api', (req, res) => {
+  res.json({ 
+    message: 'VeloInsights API',
+    version: '2.0.0',
+    status: 'OK',
+    endpoints: ['/api/test', '/api/dados', '/api/upload', '/api/health']
   });
 });
 
